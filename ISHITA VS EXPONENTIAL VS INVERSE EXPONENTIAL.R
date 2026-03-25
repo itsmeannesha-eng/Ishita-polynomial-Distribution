@@ -130,66 +130,110 @@ xx <- seq(min(data),max(data),length=400)
 
 #PDF
 
-ggplot()+
-  geom_line(aes(xx,
-                dIP(xx,theta_hat,m_hat)),
-            color="blue",linewidth=1.4)+
-  labs(title="Estimated PDF of Ishita Polynomial",
-       x="Failure Time",y="Density")
+#ggplot()+
+ # geom_line(aes(xx,
+  #              dIP(xx,theta_hat,m_hat)),
+   #         color="blue",linewidth=1.4)+
+  #labs(title="Estimated PDF of Ishita Polynomial",
+   #    x="Failure Time",y="Density")
 
 # CDF
 
-ggplot()+
-  geom_line(aes(xx,
-                pIP(xx,theta_hat,m_hat)),
-            color="red",linewidth=1.4)+
-  labs(title="Estimated CDF",
-       x="Failure Time",y="CDF")
+#ggplot()+
+ # geom_line(aes(xx,
+  #              pIP(xx,theta_hat,m_hat)),
+   #         color="red",linewidth=1.4)+
+  #labs(title="Estimated CDF",
+   #    x="Failure Time",y="CDF")
 
 # Hazard
 
-ggplot()+
-  geom_line(aes(xx,
-                hIP(xx,theta_hat,m_hat)),
-            color="darkgreen",linewidth=1.4)+
-  labs(title="Hazard Rate Function",
-       x="Failure Time",y="Hazard Rate")
+#ggplot()+
+ # geom_line(aes(xx,
+  #              hIP(xx,theta_hat,m_hat)),
+   #         color="darkgreen",linewidth=1.4)+
+  #labs(title="Hazard Rate Function",
+   #    x="Failure Time",y="Hazard Rate")
 
 # Histogram
-ggplot(data.frame(data),
-       aes(data))+
-  geom_histogram(aes(y=..density..),
-                 bins=30,
-                 fill="skyblue",
-                 color="black")+
-  stat_function(
-    fun=function(z)
-      dIP(z,theta_hat,m_hat),
-    color="red",
-    linewidth=1.5)+
-  labs(title="Histogram with Ishita Fit",
-       x="Failure Time",y="Density")
+#ggplot(data.frame(data),
+ #      aes(data))+
+  #geom_histogram(aes(y=..density..),
+   #              bins=30,
+   #              fill="skyblue",
+   #              color="black")+
+  #stat_function(
+   # fun=function(z)
+    #  dIP(z,theta_hat,m_hat),
+  #  color="red",
+   # linewidth=1.5)+
+  #labs(title="Histogram with Ishita Fit",
+   #    x="Failure Time",y="Density")
 
 # QQ plot
 
-ggplot(data.frame(sample=data),
-       aes(sample=sample))+
-  stat_qq(color="purple")+
-  stat_qq_line()+
-  labs(title="Q–Q Plot")
+#ggplot(data.frame(sample=data),
+ #      aes(sample=sample))+
+  #stat_qq(color="purple")+
+  #stat_qq_line()+
+  #labs(title="Q–Q Plot")
 
-# TTT
 
-xs <- sort(data)
-TTT <- cumsum(xs)/sum(xs)
-r <- (1:n)/n
+# MULTIPLE m ANALYSIS (1 to 8)
 
-ggplot(data.frame(r,TTT),
-       aes(r,TTT))+
-  geom_line(color="orange",
-            linewidth=1.4)+
-  geom_abline(linetype=2)+
-  labs(title="Total Time on Test Plot")
+mgrid <- 1:8
+fit_all <- data.frame()
+
+for(m in mgrid){
+  th <- estimate_theta(data,m)
+  
+  fit_all <- rbind(fit_all,
+                   data.frame(m=m,theta=th))
+}
+
+print(fit_all)
+
+# Prepare plot data
+plot_data <- data.frame()
+
+for(i in 1:nrow(fit_all)){
+  
+  m_val <- fit_all$m[i]
+  th_val <- fit_all$theta[i]
+  
+  temp <- data.frame(
+    x = xx,
+    m = factor(m_val),
+    pdf = dIP(xx, th_val, m_val),
+    cdf = pIP(xx, th_val, m_val),
+    hazard = hIP(xx, th_val, m_val)
+  )
+  
+  plot_data <- rbind(plot_data, temp)
+}
+
+# PDF comparison
+ggplot(plot_data,aes(x,pdf,color=m))+
+  geom_line()+
+  labs(title="PDF Comparison (m=1 to 8)")
+
+# CDF comparison
+ggplot(plot_data,aes(x,cdf,color=m))+
+  geom_line()+
+  labs(title="CDF Comparison (m=1 to 8)")
+
+# Hazard comparison
+ggplot(plot_data,aes(x,hazard,color=m))+
+  geom_line()+
+  labs(title="Hazard Comparison (m=1 to 8)")
+
+# Histogram + all PDFs
+ggplot(data.frame(data),aes(data))+
+  geom_histogram(aes(y=..density..),
+                 bins=30,fill="grey80")+
+  geom_line(data=plot_data,
+            aes(x=x,y=pdf,color=m))
+
 
 # Order Selection
 
