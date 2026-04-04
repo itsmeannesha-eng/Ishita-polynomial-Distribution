@@ -1,1 +1,0 @@
-# Ishita-polynomial-Distribution
